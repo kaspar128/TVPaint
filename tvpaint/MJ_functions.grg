@@ -1,0 +1,438 @@
+// Cool TVPaint -functions
+// All credits go to Mads Juul
+// https://wiki.tvpaint.com/index.php?title=George_Procedures_:_Mads_Juul
+
+
+//Check if the TVpaint can read and write the file system else you have to restart TVP
+//RETURNS : Boolean 
+//DEPENDS : project_getPath()
+FUNCTION tvp_canWrite()
+    LOCAL projectpath rest project canWrite
+    projectpath =  project_getPath()
+    tv_writetextfile "Exists" projectpath
+    IF CMP(result,"Forbidden")==1
+        canWrite = 0
+    ELSE
+        canWrite = 1
+    END
+    result = canWrite
+    RETURN result
+END
+
+
+//Returns the path seperater of the OS
+//RETURN : "/" or "\"
+FUNCTION tvp_getSlash()
+    LOCAL mySlash
+
+    tv_version "ComputerOS"
+
+    IF CMP(result,"WIN32")==1 || CMP(result,"WIN64")==1 
+        mySlash = "\"
+    ELSE
+        mySlash = "/"
+    END
+    result = mySlash
+    RETURN result
+END
+
+
+//Returns complete path of current project
+
+FUNCTION project_getPath()
+       LOCAL rest
+    tv_ProjectInfo 0
+    PARSE result result rest
+    RETURN result
+END
+
+
+//Returns a Boolean to tell if current Project is saved or not
+//DEPEND on project_getPath()
+
+FUNCTION project_isSaved()
+    LOCAL projectpath exists slash myResult
+    projectpath =  project_getPath()
+    tv_writetextfile "Exists" projectpath
+    exists = projectpath 
+    slash = tvp_getSlash()
+    IF CMP(exists,projectpath)!=1||CMP(exists,slash )
+        myResult = 0
+    ELSE
+        myResult = 1
+    END
+    result = myResult 
+    RETURN result
+END
+
+
+FUNCTION project_getParent()
+    project_getPath()
+    file_getParent(result)
+    RETURN result
+END
+
+
+
+
+FUNCTION project_getName()
+    project_getPath()
+    file_getName(result)
+    RETURN result
+END
+
+
+
+FUNCTION project_getBaseName()
+    LOCAL projectName strlen last projectbase
+    projectName = project_getName()
+    IF CMP(projectName,"-1")==1
+        result = -1
+    ELSE
+        strlen = LEN(projectname)
+        last = LastPos(projectname,".")
+        IF CMP(last,"0")==1
+            projectbase = projectname
+        ELSE
+            projectbase = LeftString(projectname,last-1)
+        END
+        result = projectbase
+    END
+    RETURN result
+END
+
+
+
+FUNCTION project_getBound()
+    LOCAL x2 y2
+    tv_getWidth
+    x2= result
+    x2=x2-1
+    tv_getHeight 
+    y2 = result
+    y2=y2-1
+    result = "0 0 "x2" "y2
+    RETURN result
+END
+
+
+FUNCTION project_getAspect()
+    LOCAL height width aspect
+    myResult = -1
+    tv_GetHeight
+    height = result
+    tv_GetWidth
+    width = result
+    
+    aspect = width/height
+    myResult = aspect
+END
+
+//Saves an Incremental file of current TVPP project in the same folder as the currentProject.
+//Find the PArt of the current file name with the "divider" and the "part" variabled passed to the function
+
+//lets say we have a file called thefox_Q002_S002_v02.tvpp
+//And we want to increment the "v02" part. We would calle the function like this
+//project_incrementalSave("_",4,1)
+
+
+FUNCTION project_incrementalSave(divider,part,ask,minimumDigitLength)
+    LOCAL name dir newName myReturn
+    project_isSaved()
+    IF CMP(result,"1")1==1
+        name = project_getName()
+        dir = project_getParent()
+        
+        
+        string_incrementalPart(name,divider,part,minimumDigitLength)
+
+        
+        newName = dir"/"result
+        
+        IF CMP(ask,"1")==1
+            tv_Request newName"|yes|CANCEL"
+            IF result
+                tv_SaveProject newName
+            END
+        ELSE
+            tv_SaveProject newName
+
+        END
+        myReturn = newName
+    ELSE
+        myReturn = 0
+    END
+    
+    result = myReturn
+    RETURN result
+END
+
+
+FUNCTION string_addZeros(prefix,digit,length)
+    LOCAL cur i
+    length=length*1
+    digit=digit*1
+    cur = LEN(digit)
+    length=length-1
+    FOR i=cur TO length
+        prefix=prefix"0"
+    END
+    prefix =prefix""digit
+    result = prefix
+    RETURN result
+END
+
+
+
+FUNCTION char_isDigit(char)
+    LOCAL myResult
+    myResult = 0
+    IF CMP('"0"',char)==1
+        myResult = 1
+    END
+    IF CMP('"1"',char)==1
+        myResult = 1
+    END
+    IF CMP('"2"',char)==1
+        myResult = 1
+    END
+    IF CMP('"3"',char)==1
+        myResult = 1
+    END
+    IF CMP('"4"',char)==1
+        myResult = 1
+    END
+    IF CMP('"5"',char)==1
+        myResult = 1
+    END
+    IF CMP('"6"',char)==1
+        myResult = 1
+    END
+    IF CMP('"7"',char)==1
+        myResult = 1
+    END
+    IF CMP('"8"',char)==1
+        myResult = 1
+    END
+    IF CMP('"9"',char)==1
+        myResult = 1
+    END
+    IF CMP('" "',char)==1
+        myResult = 0
+    END
+    result = myResult
+    RETURN result
+END
+
+FUNCTION string_getPrefix(string)
+    LOCAL myLen pos prefix all loop cur test
+    myLen = LEN(string)
+    pos = 1
+    myResult=""
+    loop=1
+    WHILE pos<=myLen && loop ==1
+        cur = CHAR(string,pos)
+        test = '"'cur'"'
+        char_isDigit(test)
+        IF result==1
+            loop=0
+        ELSE
+             myResult=myResult""cur
+        END
+        pos=pos+1
+    END
+    RETURN myResult
+END
+
+
+FUNCTION string_getDigit(string)
+    LOCAL myLen pos number loop cur test length
+    myLen = LEN(string)
+    pos = 1
+    number="0"
+    loop=1
+    length=0
+    WHILE pos<=myLen && loop ==1
+        cur = CHAR(string,pos)
+        test = '"'cur'"'
+        char_isDigit(test)
+        IF result==1
+            number=number""cur
+            length=length+1
+        ELSE
+            IF length>0
+                loop=0
+            END
+        END
+        pos=pos+1
+    END
+    result = number" "length
+    RETURN result
+END
+
+FUNCTION string_getPostfix(string)
+    LOCAL myLen pos part cur test
+    myLen = LEN(string)
+    pos = 1
+    myResult=""
+    part=0
+    WHILE pos<=myLen
+        cur = CHAR(string,pos)
+        test = '"'cur'"'
+        char_isDigit(test)
+        IF result==1
+            IF part==0
+                part=1
+            END
+        ELSE
+            IF part==1
+                part=2
+            END
+        END
+        IF part==2
+             myResult=myResult""cur
+        END
+        pos=pos+1
+    END
+
+    RETURN myResult
+END
+
+
+FUNCTION string_increment(divider,string,minimumDigitLength)
+    LOCAL prefix  digit length postfix
+    prefix = string_getPrefix(string)
+    prefix = divider""prefix 
+    string_getDigit(string)
+    PARSE result digit length
+    digit=digit*1
+    digit=digit+1
+    IF length<minimumDigitLength
+        length=minimumDigitLength
+    END
+    postfix = string_getPostfix(string)
+    string_addZeros(prefix,digit,length)
+    result = result""postfix
+    RETURN result
+END
+
+
+FUNCTION string_incrementalPart(string,divider,part,minimumDigitLength)
+    LOCAL length myPart increment all i 
+    length = newPARSE(string,divider)
+    myPart = var(part)
+    string_increment(divider,myPart,minimumDigitLength)
+    increment = result
+    all=""
+    FOR i=1 TO length
+        iF i==part
+            all=all""increment
+        ELSE
+            myPart=var(i)
+            IF i==1
+                all=all""myPart
+            ELSE
+                all=all""divider""myPart
+            END
+        END
+    END
+    result=all
+    RETURN result
+END
+
+
+
+FUNCTION file_getExt(path)
+    newParse(path,".")
+    result = var(2)
+    RETURN result
+END
+
+
+FUNCTION file_getParent(path)
+    LOCAL strlen last 
+    path = Replace(path,'\','/')
+    strlen = LEN(path)
+    last = LastPos(path,"/")
+    path = LeftString(path,last-1)
+    IF CMP(last,strlen)==1
+        strlen = LEN(path)
+        last = LastPos(path,"/")
+        path = LeftString(path,last-1)
+    END
+    result = path
+    RETURN result
+END
+
+
+FUNCTION file_exists(path)
+    LOCAL exists
+    IF CMP(path,"0")==1
+        exists = 0
+    ELSE
+        tv_WriteTextFile "Exists" path
+        exists=result
+        if CMP(exists,path)==1
+            exists = 1
+        ELSE
+            exists = 0
+        END
+    END
+    result = exists
+    RETURN result
+END
+
+
+
+FUNCTION file_getName(path)
+    LOCAL  fileName strlen last
+    IF CMP(path,"/")==1 || CMP(path,"\")==1
+        fileName = -1
+    ELSE
+        path = Replace(path,'\','/')
+        strlen = LEN(path)
+        last = LastPos(path,'/')
+        fileName = RightString(path,strlen-last)
+        
+    END
+    result = fileName
+    RETURN result
+END
+
+
+FUNCTION file_readTextFile(textFilePath)
+    LOCAL myReturn fileExists i line text
+    myReturn = 0
+    tv_WriteTextFile "Exists" textFilePath
+    fileExists = result
+    
+    IF CMP(fileExists,textFilePath)==1
+        loop = 1
+        i=0
+        WHILE loop==1
+            tv_readtextfile  i textFilePath
+            PARSE result line text
+            
+            IF CMP( line, "EOF"  ) == 1
+                loop=0
+            ELSE
+            
+            
+                length = LEN(text)
+                length=length-2
+                text = CUT(text,1,length)
+                IF i==0
+                    myReturn=text
+                ELSE
+                    myReturn=myReturn"\n"text
+                END
+        
+            END
+            i=i+1
+    
+        END
+    END
+    result= myReturn
+    RETURN result
+END
+

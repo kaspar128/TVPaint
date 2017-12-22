@@ -1,0 +1,166 @@
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\TT\tvpaint\MJ_functions.grg"
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\TT\tvpaint\KG_functions.grg"
+
+FUNCTION processClip(saveyesorno, tempfile)
+    LOCAL lastframe
+    tv_ProjectCurrentID
+    currentprojectID = result
+    
+    clipRun = 1
+    clipPos = 0
+    
+    WHILE clipRun
+        tv_clipenumid -1 clipPos
+        clipID = result
+        
+        IF CMP(clipID, "none") == 1
+            clipRun = 0
+                      
+        ELSE
+            tv_clipSelect clipID
+            tv_clipHidden
+            IF (result == 0)                
+                tv_clipname
+                clipname = Result
+                //tv_markOut clipID
+                lastframe = result
+                
+                newprojectID = createProject(clipname)
+          
+                // go to new project and open stack there...
+                tv_ProjectSelect newprojectID
+                stackFile = "Y:\lab\TrippelTools\key_blue.bin"
+                tv_StackLoad stackFile
+                tv_StackOpen
+                // go back...
+                tv_ProjectSelect currentprojectID
+           
+                // copy the layers
+                copy_layers(newprojectID, clipame)
+                
+                tv_ProjectSelect newprojectID
+                tv_StackClear
+                tv_StackClose
+              
+                save_and_close_project(saveyesorno, tempfile)
+                tv_ProjectSelect currentprojectID
+      
+            END
+            clipPos = clipPos + 1       
+        END
+    END 
+    tv_ProjectClose currentprojectID
+    // TVPaint crashes sometimes, hopefully this PAUSE will help
+    PAUSE 1
+END
+
+
+FUNCTION copy_layers(newprojectID, clipname) 
+    LOCAL layerRun layerPos length currentlayer postbehave prebehave firstlayerID
+    
+    layerRun = 1
+    layerPos = 0 
+    WHILE layerRun    
+        tv_LayerGetID layerPos    
+        layerID = result    
+        
+        IF CMP(layerID, "NONE") == 1
+            layerRun = 0       
+        ELSE
+            tv_layerSet layerID
+            layerStart = 0
+            // get useful info about the layer
+            tv_LayerInfo
+            PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+
+            // is it a scribblelayer?
+            scribblelayer = FindString(layerName, "_scribbles",1)
+            
+            // if layer is has a color-ID, then copy it..
+            // We only wan't the colored layers..
+            tv_layerColor "get" layerID
+            layerColor = result
+               
+            IF ((layerColor > 0) && (scribblelayer < 1))
+                
+                //what is the post/prebehaviour?
+                tv_layerpostbehavior layerID 
+                postbehave = result
+                tv_layerprebehavior layerID
+                prebehave = result
+
+                // select the whole layer
+                length = layerEnd - layerStart
+                tv_LayerSelect layerStart length+1
+
+                //copy the layer
+                tv_LayerCopy
+                
+                // go to the newly created project
+                tv_ProjectSelect newprojectID
+                
+                //create a new layer
+                tv_LayerCreate layerName
+                currentlayer=result
+                
+                //set the layer to animationtype
+                tv_LayerAnim
+                
+                // this sets the paste-index to first frame
+                tv_LayerSelect 1 0
+                
+                //paste the layer
+                tv_LayerPaste
+
+                //now shift the layer to its original position
+                tv_LayerShift currentlayer layerStart
+                
+                //commented out because it's not effective enough, sometimes people comment with slightly other colors
+                //erase red and blue lines
+                //iscolorlayer = FindString(layerName,'olo',1)
+                //IF (iscolorlayer < 1)
+                //    tv_cmd 'LayerHeads' tv_pixelmatrix 1 0 0 0 0   0 1 0 0 0   0 0 0 0 0   0 0 -1 1 0
+                //    tv_cmd 'LayerHeads' tv_pixelmatrix 0 0 0 0 0   0 1 0 0 0   0 0 1 0 0   -1 0 0 1 0
+                //END
+                
+                // set the pre/postbehaviour
+                tv_layerprebehavior currentlayer prebehave
+                tv_layerpostbehavior currentlayer postbehave
+                
+                iscolorlayer = FindString(layerName,'olo',1)
+                IF (iscolorlayer < 1)   
+                    //tv_warn
+                    //tv_StackOpen
+                    //tv_warn
+                    //tv_projectcurrentframe 0
+                    tv_cmd 'LayerHeads' tv_stackApply
+                    //tv_warn
+                    
+                END           
+                // go back to the original project.
+                tv_ProjectSelect currentprojectID           
+            END    
+            layerPos = layerPos + 1            
+        END 
+        //end if-then
+    END
+    // processLayers has ended. 
+    // delete the first layer of the new project.. It's always there called 'untitled-1'
+    tv_ProjectSelect newprojectID
+    // so get id of first layer and remove it..
+    tv_LayerGetID 0
+    firstlayerID = result
+    tv_LayerKill firstlayerID 
+    
+    // set name of new clip
+    tv_clipcurrentid
+    clipID = result
+    tv_clipname clipID clipname
+    
+    // save newproject and close it..
+    save_and_close_project(clipID)
+    
+    //return to original project
+    tv_ProjectSelect currentprojectID
+    
+END

@@ -1,0 +1,83 @@
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\TT\tvpaint\MJ_functions.grg"
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\TT\tvpaint\KG_functions.grg"
+
+
+FUNCTION processClip(jsonfile)
+
+    tv_ProjectCurrentID
+    currentprojectID = result
+    
+    //Select scene
+    clipRun = 1
+    clipPos = 0
+    firstC = 0
+    WHILE clipRun
+        tv_clipenumid -1 clipPos
+        clipID = result
+        
+        IF CMP(clipID, "none") == 1
+            clipRun = 0
+    
+        ELSE
+            
+            tv_clipSelect clipID
+            tv_clipHidden
+            IF (result == 0)
+                IF (firstC > 0)
+                    tv_WriteTextFile "Append" '"'jsonfile'"' ','
+                END
+                tv_clipname
+                clipname = Result
+                
+                tv_WriteTextFile "Append" '"'jsonfile'"' "'"clipname"': ["
+                //tv_WriteTextFile "Append" '"'jsonfile'"' cn": ["
+                processLayers(jsonfile, clipname)
+                tv_WriteTextFile "Append" '"'jsonfile'"' ']'
+                
+            END
+            clipPos = clipPos + 1
+            firstC = 1
+        END
+    END
+    tv_ProjectClose currentprojectID
+    // have to pause 1 second otherwise TVP will sometimes crash
+    PAUSE
+END
+
+
+
+FUNCTION processLayers(jsonfile, clipname)
+    LOCAL layerRun layerPos length currentlayer postbehave prebehave firstlayerID string   
+    layerRun = 1
+    layerPos = 0
+    firstL = 0
+
+    WHILE layerRun    
+        tv_LayerGetID layerPos    
+        layerID = result    
+        
+        IF CMP(layerID, "NONE") == 1
+            layerRun = 0
+            
+        ELSE 
+            tv_layerSet layerID
+            tv_LayerInfo
+            PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection      
+            scribblelayer = FindString(layerName, "_scribbles",1)
+                        
+            tv_layerColor "get" layerID
+            layerColor = result
+            
+            IF ((layerColor > 0) && (scribblelayer < 1))
+                // write the info..
+                IF (firstL > 0)
+                    tv_WriteTextFile "Append" '"'jsonfile'"' ','
+                END
+                tv_WriteTextFile "Append" '"'jsonfile'"' '["'layerName'",''"'layerOpacity'"]'
+                firstL = 1
+            END
+            layerPos = layerPos + 1            
+        END 
+    END
+END
+

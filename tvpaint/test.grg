@@ -1,0 +1,4 @@
+project = "Y:/sequences/seq10_park/seq10_workpackages_TVP/seq10_wp002_poort takkie aanlopen, close/seq10_wp002_colour_001.tvpp"
+processClip( project, "C:\Users\kasper.ANIKEYSTUDIO\Desktop\test.txt" )
+
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\tvpaint\layername_export_template.grg"

@@ -1,0 +1,41 @@
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\TT\tvpaint\MJ_functions.grg"
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\TT\tvpaint\KG_functions.grg"
+
+FUNCTION processClip(frameLengthFile)
+    LOCAL lastframe clipRun clipPos clipID currentprojectID
+
+    tv_ProjectCurrentID
+    currentprojectID = result
+    
+    //Select scene
+    clipRun = 1
+    clipPos = 0
+
+    WHILE clipRun
+        tv_clipenumid -1 clipPos
+        clipID = result
+        
+        IF CMP(clipID, "none") == 1
+            clipRun = 0     
+        ELSE
+            tv_clipSelect clipID
+            tv_clipHidden
+            IF (result == 0)
+   		        //processLayers(layernamefile)  
+                tv_clipname
+                clipname = Result
+                
+                tv_markOut clipID
+                PARSE result lastframe settertjedesetter
+                lastframe = lastframe + 1
+                tv_WriteTextFile "Append" '"'frameLengthFile'"' clipname", "lastframe
+            END
+            clipPos = clipPos + 1
+        END
+    END
+    
+    tv_ProjectClose currentprojectID
+    // have to pause 1 second otherwise TVP will sometimes crash
+    PAUSE 1
+   
+END

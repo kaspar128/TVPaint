@@ -1,0 +1,282 @@
+FUNCTION createProject(clipname)
+    LOCAL newprojectID seqname scenename currentprojectID
+    
+    //seqname = string_addZeros('seq', sequence, 2)
+    //scenename = tring_addZeros('sc', scene, 3)
+    //name = seqname"_"scenename
+    
+    tv_ProjectCurrentID
+    currentprojectID = result
+    tv_markIn 
+    PARSE result inframe type
+    
+    tv_markOut
+    PARSE result outframe type
+    
+    tv_ProjectInfo
+    PARSE result projectname projectwidth projectheight projectpixelaspect projectframerate projectfield projectstartframe
+    
+    tv_ProjectNew clipname projectwidth projectheight projectpixelaspect projectframerate projectfield projectstartframe
+    tv_ProjectCurrentID
+    newprojectID = result
+    tv_StartFrame projectstartframe
+    tv_markIn inframe "set"
+    tv_markOut outframe "set"
+    tv_ProjectSelect currentprojectID
+    RETURN newprojectID
+END
+
+
+FUNCTION createProject2(sequence, scene)
+    LOCAL projectID seqname scenename
+    
+    seqname = string_addZeros('seq', sequence, 2)
+    scenename = tring_addZeros('sc', scene, 3)
+    
+    
+    tv_ProjectInfo
+    PARSE result projectname projectwidth projectheight projectpixelaspect projectframerate projectfield projectprojectstartframe
+    tv_ProjectNew name projectwidth projectheight projectpixelaspect projectframerate projectfield projectprojectstartframe
+    tv_ProjectCurrentID
+    projectID = result
+    
+    
+    RETURN projectID
+END
+
+
+FUNCTION save_and_close_project(saveyesorno, tempfile)
+
+    LOCAL path clipname pos pos2 seq scene seqfix scenefix
+    tv_clipname
+    clipname = Result
+
+    pos = Searchstring(clipname, 'seq')
+    pos2 = Searchstring(clipname, 'sc')
+    IF (pos2 == 0)
+        pos2 = Searchstring(clipname, '_') - 1
+    END
+
+    IF (pos > 0)
+    
+        seq = CUT(clipname, pos + 3, pos + 4)
+        scene = CUT(clipname, pos2 + 2, LEN(clipname))
+        path = findScenedir(seq, scene)
+        
+        IF (CMP(path, 'fail') != 1)
+            
+            
+            seqfix = fix("seq", seq)
+            scenefix = fix("sc0", scene)
+
+            path = path"/"seqfix"_"scenefix"_colour.tvpp"
+            
+            tv_WriteTextFile "Append" '"'tempfile'"' path
+            
+            IF (saveyesorno == 1)
+                tv_SaveProject path
+                PAUSE 1
+                tv_ProjectClose newprojectID
+            END
+        ELSE
+            tv_warn "There was no path, better write this down and export it manually..."
+        END
+    END 
+END
+
+
+FUNCTION string_addZeros(prefix,digit,length)
+    LOCAL cur i
+    length=length*1
+    digit=digit*1
+    cur = LEN(digit)
+    length=length-1
+    FOR i=cur TO length
+        prefix=prefix"0"
+    END
+    prefix =prefix""digit
+    result = prefix
+    RETURN result
+END
+
+
+FUNCTION FindString(string,search,start)
+    LOCAL found j pos lastpos lstr lsrch
+    found = 0
+    lastpos = start
+    lstr = LEN(string)
+    lsrch = LEN(search)
+    
+    IF (CMP(search,"") == 1)
+        RETURN -1
+    END
+    WHILE ((pos = Find(string,CHAR(search,1),lastpos)) > 0)
+        j = 1
+        found = 1
+        IF (j == lsrch)
+            RETURN pos
+        END
+        WHILE ((j < lsrch) && (found == 1))
+            IF ((pos+j) > lstr)
+                RETURN 0
+            ELSE
+                IF (CMP(CHAR(search,j+1),CHAR(string,pos+j)) == 0)
+                    lastpos = pos+j
+                    found = 0
+                END
+            END
+            j = j+1
+        END
+        IF (found == 1)
+            RETURN pos
+        END
+    END
+    RETURN pos
+END
+
+
+FUNCTION Find(string,car,start)
+    LOCAL i size
+    i = start
+    size = LEN(string)
+    
+    IF ((start <= 0) || (start > size) || (CMP(car,"") == 1))
+        RETURN -1
+    END
+    DO
+        IF (CMP(CHAR(string,i),car) == 1)
+            RETURN i
+        END
+    UNTIL ((i=i+1) > size)
+    RETURN 0
+END
+
+
+
+FUNCTION isletter(letter)
+    LOCAL i alphabet m
+    alphabet = "abcdefghijklmnopqrstuvwxyz"
+    FOR i = 1 TO 26
+        m = CMP(letter, CHAR(alphabet, i))
+        if (m == 1)
+            RETURN 1
+        END
+
+    END
+    RETURN 0
+END
+
+    
+    
+
+FUNCTION fix(prefix, nr)
+    LOCAL last
+    last = CHAR(nr, LEN(nr))
+    if (isletter(last) == 0)
+        IF (nr < 10)
+            RETURN prefix"0"nr
+        ELSE
+            RETURN prefix""nr    
+        END    
+    ELSE
+        nr = CUT(nr, 2, LEN(nr))
+        RETURN prefix""nr
+    END
+END 
+
+
+FUNCTION Substring(string, start, end)
+    LOCAL i size snippet last char
+    i = start
+    size = LEN(string)    
+    snippet = ""
+    
+    IF (end > size)
+        last = size
+    ELSE
+        last = end
+    END
+    
+    IF ( (start < 1) || (start > end) )
+        RETURN -1
+    ELSE
+        DO
+    
+            char = CHAR(string, i)
+            snippet = snippet""char
+              
+        UNTIL ((i=i+1) > last)
+             
+        RETURN snippet
+        
+    END
+END
+
+
+FUNCTION Searchstring(string, pattern)
+    LOCAL a size snippet match 
+    match = 0
+    size = LEN(pattern)
+    IF LEN(string) >= LEN(pattern)
+        
+        FOR a = 1 TO (LEN(string) - LEN(pattern) + 1)
+            snippet = CUT(string, a , a + size - 1 )
+            
+            match = CMP(snippet, pattern)
+            IF (match == 1)
+                RETURN a
+            END
+        END
+        
+    END
+    RETURN match
+END
+
+
+FUNCTION findScenedir(sr, scenenr)
+    LOCAL root loop line pattern match sceneroot line loopTwo eof2 eof dirname dir2name pattern2
+    
+    sceneroot = ""
+    root = "Y:/sequences/"
+    loop = 1
+    line = 0
+    pattern = ""
+    
+    WHILE ( loop == 1 )
+        tv_readtextfile line '"'root'"'
+        parse result eof dirname
+        IF ( CMP( eof, "EOF"  ) == 1) || ( line == 250 )
+            loop = 0
+        ELSE    
+            pattern = fix("seq", sr)
+            matchpos = Searchstring(dirname, pattern)
+            sceneroot = root""dirname"/"pattern"_scenes/"
+            
+            IF ( matchpos != 0 )        
+                line = 0
+                looptwo = 1
+                WHILE ( looptwo == 1 )
+                    tv_readtextfile line '"'sceneroot'"'
+                    parse result eof2 dir2name          
+                    IF ( CMP( eof2, "EOF"  ) == 1) || ( line == 250 )
+                        loopTwo = 0
+                    ELSE              
+                        pattern2 = fix("sc0", scenenr)       
+                        matchpos = Searchstring(dir2name, pattern2"_")
+         
+                        IF (matchpos != 0)
+                            
+                            RETURN sceneroot""dir2name   
+                        END        
+                    END
+                    line = line + 1    
+                    
+                END    
+                tv_Warn "scenedirectory "scenenr" not found..\nin directory: "sceneroot
+                RETURN "fail"
+            END    
+                
+        END       
+    line = line + 1
+    END
+END

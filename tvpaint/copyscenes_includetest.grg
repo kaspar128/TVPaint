@@ -1,0 +1,6 @@
+//tv_LoadProject '"'tvpaintproject'"'
+//this = project_getPath
+saveyesorno = 0
+tempfile = "C:\Users\kasper.ANIKEYSTUDIO\Desktop\temp_scenecopyproects_from_workpackages.txt"
+processClip(saveyesorno, tempfile)
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\TT\tvpaint\copy_scenes.grg"

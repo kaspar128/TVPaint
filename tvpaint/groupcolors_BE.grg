@@ -1,0 +1,23 @@
+
+FUNCTION set_groupcolors_BE()
+    tv_clipcurrentid 
+    ClipID = result
+
+
+    tv_layerColor "setcolor" ClipID 0 123 123 123 "Default"  
+    tv_layerColor "setcolor" ClipID 1 55 167 89 "Notes"
+    tv_layerColor "setcolor" ClipID 2 140 185 75 "Shadow"
+    tv_layerColor "setcolor" ClipID 3 190 185 51 "CastShadow"
+    tv_layerColor "setcolor" ClipID 4 179 100 53 "RoughAnimation" 
+    tv_layerColor "setcolor" ClipID 5 168 55 55 "CleanAnimation"
+    tv_layerColor "setcolor" ClipID 6 145 55 167 "HighLight"
+    tv_layerColor "setcolor" ClipID 7 66 121 199 "free"
+    tv_layerColor "setcolor" ClipID 8 37 77 125 "free" 
+    tv_layerColor "setcolor" ClipID 9 123 123 123 "free" 
+    tv_layerColor "setcolor" ClipID 10 123 123 123 "free" 
+    tv_layerColor "setcolor" ClipID 11 123 123 123 "free" 
+    tv_layerColor "setcolor" ClipID 12 123 123 123 "free" 
+
+END 
+
+

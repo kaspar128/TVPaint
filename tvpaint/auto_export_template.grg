@@ -1,0 +1,106 @@
+
+cliprun=1
+clipposition=0
+frames = 0
+WHILE cliprun
+	tv_clipenumid -1 clipposition
+	clipId = result
+	IF CMP(clipId,"none")==1
+	    cliprun = 0
+	ELSE
+	    tv_clipSelect clipId  
+	    tv_clipHidden
+   	    // process only non-hidden clips
+	    IF (result == 0) 
+	        hasColor = 0
+	        layerRun = 1
+	        layerPos = 0  
+
+	        WHILE layerRun    
+	            tv_LayerGetID layerPos    
+	            layerId = result    
+	            IF CMP(layerId,"NONE")==0        
+	                tv_layerSet layerId
+	                tv_layerColor "get" layerId
+	                layerColor = result
+
+	                IF layerColor > 0
+	                    hasColor = 1                  
+	                END
+	                layerPos = layerPos+1    
+	            ELSE        
+	                layerRun =0   
+	                tv_ProjectSelect currentproject
+	                tv_ProjectClose layoutid        
+	            END
+	        END
+	        
+	        IF hasColor == 1
+	            //first turn-off al non-colored layers
+	            layerRun = 1
+	            layerPos = 0
+	            WHILE layerRun    
+	                tv_LayerGetID layerPos    
+	                layerId = result    
+	                IF CMP(layerId,"NONE")==0
+	                    tv_layerSet layerId
+	                    tv_layerColor "get" layerId
+	                    layerColor = result
+	                    IF layerColor > 0
+	                        // make layer visible
+	                        tv_LayerDisplay layerId "On"
+	                        // switch off the light-table
+	                        tv_LayerDisplay layerId "LightTable" "Off"
+	                    ELSE
+	                        tv_LayerDisplay layerId "Off"   
+	                    END                  
+	                    
+	                    layerPos = layerPos+1    
+	                ELSE        
+	                    layerRun =0   
+	                    tv_ProjectSelect currentproject
+	                    tv_ProjectClose layoutid  
+	                END
+	            END
+
+	            tv_clipname
+	            clipname = Result
+
+	            pos = Searchstring(clipname, 'seq')
+	            pos2 = Searchstring(clipname, 'sc')
+	            if (pos2 == 0)
+	                pos2 = Searchstring(clipname, '_') - 1
+	            END
+
+	            IF (pos > 0)
+	                seq = CUT(clipname, pos + 3, pos + 4)
+	                scene = CUT(clipname, pos2 + 2, LEN(clipname)
+	                path = findScenedir(seq, scene)
+	                IF (CMP(path, "fail")!= 1)
+	                    seqfix = fix("seq", seq)
+	                    scenefix = fix("sc0", scene    
+	                    path = path"/"seqfix"_"scenefix"_export_tvp"
+	                    name = seqfix"_"scenefix"_total_0001.tif"
+	                    fpath = path"/total/"name
+	                    //openThis = "export imagesequence|"path"|"name"|*.*"     
+	                    //tv_ReqFile openThis
+	                    //parse Result exportPath
+	                    exportPath = fpath  
+	                    tv_markOut 
+	                    parse result outframe setter  
+	                    tv_SaveMode TIFF
+	                    tv_AlphaSaveMode PreMultiply
+	                    tv_Background NONE
+	                    tv_savesequence '"'exportPath'"' 0 outframe
+	                    tv_Background COLOR  
+	                END
+	            END  
+	        END
+	    //end hiddenclip-check
+	    END	    
+    clipposition=clipposition+1                
+ 	END
+END
+
+
+

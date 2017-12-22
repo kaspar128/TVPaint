@@ -1,0 +1,91 @@
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\TT\tvpaint\MJ_functions.grg"
+#INCLUDE "C:\Users\kasper.ANIKEYSTUDIO\Desktop\TT_framework_dev\TT\tvpaint\KG_functions.grg"
+
+tv_clipname
+clipnaam = Result
+
+pos = Searchstring(clipnaam, 'seq')
+pos2 = Searchstring(clipnaam, 'sc')
+IF (pos2 == 0)
+    pos2 = Searchstring(clipnaam, '_') - 1
+END
+
+IF (pos > 0)
+    seq = CUT(clipnaam, pos + 3, pos + 4)
+    scene = CUT(clipnaam, pos2 + 2, LEN(clipnaam))  
+    path = findScenedir(seq, scene)
+    IF (CMP(path, "fail")!= 1)
+        seqfix = fix("seq", seq)
+        scenefix = fix("sc0", scene)
+        path = path"/"seqfix"_"scenefix"_export_tvp"
+        
+        //opendit = "export imagesequence|"path"||"
+        //tv_ReqFile opendit
+        //parse Result exportpath
+        //IF ( CMP(exportpath, "Cancel") < 1 )
+        
+        tv_writetextfile "Exists" '"'path'"'
+        pathcheck = result
+        //tv_warn pathcheck
+        //tv_warn path
+        
+        IF (CMP(pathcheck, '0') != 1)
+            path  = path"/Layers"
+            tv_writetextfile "Exists" '"'path'"'
+            pathcheck = result
+        
+            IF (CMP(pathcheck, '0') == 1)
+                tv_writetextfile "MkDir" '"'path'"' "Create directory?:\n"path
+            END
+
+            tv_markOut 
+            parse result outframe setter
+        
+            exportLayers(path, outframe)             
+        END
+    END
+END
+
+
+FUNCTION exportLayers(path, outframe)
+    LOCAL loop i currentLayerID finalpath basename layerfolder size
+    //run on layers
+    loop= 1
+    i= 0
+    WHILE loop
+        tv_LayerGetID i
+        currentLayerID = result    
+        IF CMP(currentLayerID,"NONE")==0        
+
+            tv_layerSet currentLayerID
+            tv_Display "current"
+           
+            tv_LayerInfo
+            PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+            
+            //layeroutputname = string_addZeros("layer",i+1,2)     
+            //makefolder
+            
+            layerfolder_basename = string_addZeros("layer",i+1,2)"_"layerName
+            size = LEN(layerfolder_basename)
+            // layerfolder_basename = CUT(layerfolder_basename,2,size)
+
+            layerfolder = path"/"layerfolder_basename
+            tv_writetextfile "MkDir" '"'layerfolder'"' "Create folder?:\n"layerfolder
+            
+            basename = layerfolder_basename"_0001.tif"
+            finalpath = layerfolder"/"basename
+            
+            //tv_warn finalpath
+            tv_SaveMode PNG
+            tv_AlphaSaveMode PreMultiply
+            tv_Background NONE
+            tv_savesequence '"'finalpath'"' 0 outframe
+            tv_Background COLOR
+
+            i = i+1    
+        ELSE        
+            loop=0
+        END
+    END
+END

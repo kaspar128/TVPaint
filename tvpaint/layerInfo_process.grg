@@ -1,0 +1,102 @@
+
+FUNCTION processClip(tvpaintproject, layernamefile)
+    tv_LoadProject '"'tvpaintproject'"' 
+                    
+    //Select scene
+    clipRun = 1
+    clipPos = 0
+    
+    WHILE clipRun
+        tv_clipenumid -1 clipPos
+        clipID = result
+        
+        IF CMP(clipID, "none") == 1
+            clipRun = 0    
+        ELSE
+            tv_clipSelect clipID
+            // is de clip HIDDEN?
+            tv_clipHidden
+            IF (result == 0)
+                
+                processLayers(layernamefile)
+                
+                clipPos = clipPos + 1               
+            END
+        END
+    END
+
+    tv_ProjectCurrentID
+    projectID = result
+    tv_ProjectClose projectID  
+    PAUSE 1 
+END
+
+
+
+
+FUNCTION processLayers(layernamefile)    
+    LOCAL layerRun layerPos clipname
+    
+    layerRun = 1
+    layerPos = 0
+    
+    tv_clipname
+    clipname = result
+    tv_WriteTextFile "Append" '"'layernamefile'"' "## "clipname
+    
+    WHILE layerRun    
+        tv_LayerGetID layerPos    
+        layerID = result            
+        IF CMP(layerID, "NONE") == 1
+            layerRun = 0
+            
+        ELSE
+            tv_layerSet layerID            
+            tv_layerColor "get" layerID
+            layerColor = result
+            
+            IF layerColor > 0
+    
+                tv_LayerInfo
+                PARSE result layerDisplay layerPosition layerOpacity layerName rest
+                
+                tv_WriteTextFile "Append"  '"'layernamefile'"' layerName
+            END
+            layerPos = layerPos + 1              
+        END   
+    END
+    
+END
+
+FUNCTION createProject(sequence, scene)
+    LOCAL projectID seqname scenename
+    
+    seqname = string_addZeros('seq', sequence, 2)
+    scenename = tring_addZeros('sc', scene, 3)
+    
+    
+    tv_ProjectInfo
+    PARSE result projectname projectwidth projectheight projectpixelaspect projectframerate projectfield projectprojectstartframe
+    
+    tv_ProjectNew name projectwidth projectheight projectpixelaspect projectframerate projectfield projectprojectstartframe
+    tv_ProjectCurrentID
+    projectID = result
+    
+    
+    RETURN projectID
+END
+
+
+FUNCTION string_addZeros(prefix,digit,length)
+    LOCAL cur i
+    length=length*1
+    digit=digit*1
+    cur = LEN(digit)
+    length=length-1
+    FOR i=cur TO length
+        prefix=prefix"0"
+    END
+    prefix =prefix""digit
+    result = prefix
+    RETURN result
+END

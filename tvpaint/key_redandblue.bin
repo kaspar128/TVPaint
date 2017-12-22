@@ -1,0 +1,59 @@
+﻿[Stack]
+count=2
+filter_00=c53a3289-e762-7d4f-8c7d-6d899cdd7559
+filter_01=5ad3b679-bef8-034a-8639-a3dff860ec93
+
+[c53a3289-e762-7d4f-8c7d-6d899cdd7559]
+timewrapperprofileprof_point0=0 0
+timewrapperprofileprof_point1=1 1
+param_3__value=0
+name=ColorKeyer
+username=Color Keyer
+timewrapperprofileprof_numpoint=2
+param_0__value=255 0 0 255
+autokeyidgeneration=1
+classauid=673f8e64-c806-11d7-8353-00105aafaaab
+param_0__myname=Color
+timewrapper=0
+disclosed=1
+param_1__myname=Tolerance
+param_2__myname=Softness
+param_3__myname=Invert
+param_1__value=14
+active=1
+timewrapperprofileprof_linear=1
+param_2_key_0_kp_val=6 0 0 0 0 0
+localename=Color Keyer
+timewrapperprofileprof_current=0
+param_1_key_0_kp_val=14 0 0 0 0 0
+param_2__value=6
+timewrapperprofileprof_name=Color Keyer Speed Curve
+param_0_key_0_kp_val=255 0 0 255 0 0 0 0 0
+
+[5ad3b679-bef8-034a-8639-a3dff860ec93]
+timewrapperprofileprof_point0=0 0
+timewrapperprofileprof_point1=1 1
+param_3__value=0
+name=ColorKeyer
+username=Color Keyer
+timewrapperprofileprof_numpoint=2
+param_0__value=0 0 255 255
+autokeyidgeneration=1
+classauid=673f8e64-c806-11d7-8353-00105aafaaab
+param_0__myname=Color
+timewrapper=0
+disclosed=1
+param_1__myname=Tolerance
+param_2__myname=Softness
+param_3__myname=Invert
+param_1__value=14
+active=1
+timewrapperprofileprof_linear=1
+param_2_key_0_kp_val=6 0 0 0 0 0
+localename=Color Keyer
+timewrapperprofileprof_current=0
+param_1_key_0_kp_val=14 0 0 0 0 0
+param_2__value=6
+timewrapperprofileprof_name=Color Keyer Speed Curve
+param_0_key_0_kp_val=0 0 255 255 0 0 0 0 0
+

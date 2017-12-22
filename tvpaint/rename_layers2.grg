@@ -1,0 +1,83 @@
+#INCLUDE "C:\\Users\\kasper.ANIKEYSTUDIO\\Desktop\\TT_framework_dev\\TT\\tvpaint\\MJ_functions.grg"
+#INCLUDE "C:\\Users\\kasper.ANIKEYSTUDIO\\Desktop\\TT_framework_dev\\TT\\tvpaint\\KG_functions.grg"
+#INCLUDE "C:\\Users\\kasper.ANIKEYSTUDIO\\Desktop\\TT_framework_dev\\TT\\tvpaint\\groupcolors_BE.grg"
+
+tv_warn "Please check the pythonscript if the values are correct"
+tfile = "Y:/sequences/seq06_tuin-speech/seq06_data/seq06_TVP-layernames.txt"
+
+set_groupcolors_BE()
+rename_layers(tfile)
+
+FUNCTION rename_layers(layernamefile)
+    LOCAL text loop line string pos2 layerPos process clipnaam
+    
+    text = ""
+    loop = 1
+    line = 0
+    process = 0
+    layerPos = 0
+    
+    tv_clipname
+    clipnaam = Result
+      
+    pos2 = Searchstring(clipnaam, 'sc')   
+    if (pos2 == 0)
+        pos2 = Searchstring(clipnaam, '_') - 1
+    END
+    
+    IF (pos2 > 0)     
+        scene = CUT(clipnaam, pos2, LEN(clipnaam))     
+        WHILE ( loop == 1 )
+            tv_readtextfile line '"'layernamefile'"'
+            
+            parse result eof string
+            
+            IF ( CMP( eof, "EOF"  ) == 1)
+                loop = 0
+            ELSE
+            
+                IF (CMP('##', CUT(string, 1, 2)) == 1)
+                    gs = getscene(string)
+                    ll=len(gs)
+                    mm =len(scene)
+                    
+                    IF (CMP(scene, gs) == 1)
+                        
+                        process = 1
+                    ELSE
+                        process = 0
+                    END
+                        
+                ELSE
+                
+                    IF (process ==1)
+                        
+                        tv_LayerGetID layerPos    
+                        layerID = result
+                        tv_layerSet layerID
+                        tv_LayerRename layerID string 
+                        
+                        tv_LayerInfo
+                        PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+                        
+                        IF (FindString(string,'_RUFF',1) > 0)
+                
+                            tv_layerColor "set" layerID 4
+                        
+                        END
+                        IF (FindString(string,'_TD',1) > 0 )
+                            
+                            tv_layerColor "set" layerID 5
+                        
+                        END
+                        
+                      
+                        layerPos = layerPos + 1
+                    END
+                END
+            END
+            line = line + 1
+        END
+        
+    END
+END
